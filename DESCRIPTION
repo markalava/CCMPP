@@ -1,0 +1,18 @@
+Package: ccmpp
+Title: Cohort Component Method of Population Projection
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Mark",
+           family = "Wheldon",
+           role = c("aut", "cre"),
+           email = "wheldon@un.org",
+           comment = c(ORCID = "0000-0002-6897-9644"))
+Description: Implements the two-sex, female-dominant cohort-component
+    method of population projection for populations (e.g., of
+    humans). This is a deterministic method for projecting age-stratified
+    population counts forward in time. Two versions are inlcuded: one in
+    pure R and the other a wrapper for an implementation in C.
+License: CC-BY
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.2
