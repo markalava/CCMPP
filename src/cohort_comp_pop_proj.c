@@ -253,22 +253,22 @@ void ccmpp_(double *out_pop_fem, double *out_pop_male
 
 
 
-/* /\* ---------------------------------------------------------------------------- */
-/*  * REGISTRATION --- TO FINISH AND TEST */
-/*  *\/ */
+/* ----------------------------------------------------------------------------
+ * REGISTRATION 
+ */
 
-/* static R_NativePrimitiveArgType ccmpp__t[] = { */
-/*     REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, */
-/*     REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP */
-/* }; */
+static R_NativePrimitiveArgType ccmpp__t[] = {
+    REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP,
+    REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP
+};
 
-/* static const R_CMethodDef cMethods[] = { */
-/*    {"ccmpp_", (DL_FUNC) &ccmpp_, 15, ccmpp__t}, */
-/*    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
-/* }; */
+static const R_CMethodDef cMethods[] = {
+   {"ccmpp_", (DL_FUNC) &ccmpp_, 15, ccmpp__t},
+   {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
+};
 
-/* void */
-/* R_init_ccmpp(DllInfo *info) */
-/* { */
-/*    R_registerRoutines(info, cMethods, NULL, NULL, NULL); */
-/* } */
+void
+R_init_ccmpp(DllInfo *info)
+{
+   R_registerRoutines(info, cMethods, NULL, NULL, NULL);
+}
