@@ -1,0 +1,3 @@
+LIBRARY ccmpp.dll
+EXPORTS
+ R_init_ccmpp

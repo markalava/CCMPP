@@ -2,7 +2,7 @@
 ##'
 ##' A pure \R implementation of the two-sex, female-dominant cohort-component method of
 ##' population projection (e.g., \cite{Preston et. al, 2001, Ch. 6}). This is a deterministic method for
-##' projecting age-stratified population counts forward in time.
+##' projecting age-stratified population counts forward in time. It is compatible with the
 ##'
 ##' @param base_pop_counts Population counts at baseline. List with up to two components: \dQuote{female} and \dQuote{male} each a column vector of age specific counts.
 ##' @param surv_props List with up to two components: \dQuote{female} and \dQuote{male} each a matrix of survivorship proportions: the probability of reaching the age at the start of the interval for each projection interval. Years as columns, ages as rows. The first row should be nL0/(age_int*l0). The last row is survival for age_int years in the open interval.
@@ -24,12 +24,12 @@
 ##' Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 ##' @examples
 ##' data("Thailand_demog")
-##' with(Thailand_demog, ccmpp_r(thai_base_pop_counts,
+##' with(Thailand_demog, ccmpp_popReconstruct_r(thai_base_pop_counts,
 ##'                   surv_props = thai_surv_props,
 ##'                   fert_rates=thai_fert_rates,
 ##'                   srb = thai_srb, mig_props = thai_mig_props))
 ##' @export
-ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
+ccmpp_popReconstruct_r <- function(base_pop_counts, surv_props, fert_rates,
                     srb = matrix(1.05, ncol = proj_steps), mig_props,
                     proj_steps = ncol(fert_rates), age_int = 5,
                     label_dims = FALSE,
@@ -208,14 +208,14 @@ ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
 }
 
 
-##' Cohort-component population projection (C implementation)
+##' Cohort-component population projection
 ##'
-##' A C implementation of the two-sex, female-dominant cohort-component method of
+##' Female-dominant cohort-component method of
 ##' population projection (e.g., \cite{Preston et. al, 2001, Ch. 6}). This is a deterministic method for
-##' projecting age-stratified population counts forward in time.
+##' projecting age-stratified population counts forward in time. It calls compiled code to do the actual projection.
 ##'
 ##' @param n_age_grps Number of age groups
-##' @inheritParams ccmpp_r
+##' @inheritParams ccmpp_popReconstruct_r
 ##' @return If \code{isTRUE(return_list)}, a list with up to two components, \dQuote{female} and \dQuote{male}, each a matrix of age-specific population counts, years as columns, ages as rows. Otherwise a matrix of age-specific counts for females only.
 ##' @author Mark Wheldon
 ##' @family CCMPP backend functions
@@ -223,13 +223,13 @@ ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
 ##' Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 ##' @examples
 ##' data("Thailand_demog")
-##' with(Thailand_demog, ccmpp_c(thai_base_pop_counts,
+##' with(Thailand_demog, ccmpp_popReconstruct(thai_base_pop_counts,
 ##'                   surv_props = thai_surv_props,
 ##'                   fert_rates=thai_fert_rates,
 ##'                   srb = thai_srb, mig_props = thai_mig_props))
-##' @useDynLib ccmpp ccmpp_
+##' @useDynLib ccmpp, .registration = TRUE, .fixes = "C_"
 ##' @export
-ccmpp_c <- function(base_pop_counts, surv_props, fert_rates,
+ccmpp_popReconstruct <- function(base_pop_counts, surv_props, fert_rates,
                     srb = matrix(1.05, ncol = proj_steps), mig_props,
                     proj_steps = ncol(fert_rates),
                     n_age_grps = length(base_pop_counts$female), age_int = 5,
@@ -290,8 +290,7 @@ ccmpp_c <- function(base_pop_counts, surv_props, fert_rates,
 
     ## Initialize pop_matrix and Leslie matrices
     n_elements <- n_age_grps * (1 + proj_steps)
-    base_pop_counts_lis_fem <- vector("double", length = n_elements)
-    base_pop_counts_lis_male <- base_pop_counts_lis_fem
+    base_pop_counts_lis_fem <- base_pop_counts_lis_male <- vector("double", length = n_elements)
 
     base_pop_counts_lis_fem[1:n_age_grps] <- base_pop_counts$fem
     base_pop_counts_lis_male[1:n_age_grps] <- base_pop_counts$male
@@ -299,7 +298,7 @@ ccmpp_c <- function(base_pop_counts, surv_props, fert_rates,
 
     ## -------* Call C program
 
-    cfun <- .C("ccmpp_"
+    cfun <- .C(C_ccmpp
                ,out.pop.fem = base_pop_counts_lis_fem
                ,out.pop.male = base_pop_counts_lis_male
                ,srb = as.double(srb)
@@ -315,7 +314,6 @@ ccmpp_c <- function(base_pop_counts, surv_props, fert_rates,
                ,n.proj.steps = as.integer(proj_steps)
                ,n.age.pop = as.integer(n_age_grps)
                ,step.wid = as.integer(age_int)
-               ,PACKAGE = "ccmpp"
                )
 
     base_pop_counts_lis <- list(female = matrix(cfun[[1]], nrow = n_age_grps)

@@ -3,3 +3,8 @@
 #' @docType package
 #' @name ccmpp
 NULL
+
+
+.onUnload <- function (libpath) {
+  library.dynam.unload("ccmpp", libpath)
+}
