@@ -24,12 +24,12 @@
 ##' Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 ##' @examples
 ##' data("Thailand_demog")
-##' with(Thailand_demog, ccmpp_popReconstruct_r(thai_base_pop_counts,
+##' with(Thailand_demog, ccmpp_r(thai_base_pop_counts,
 ##'                   surv_props = thai_surv_props,
 ##'                   fert_rates=thai_fert_rates,
 ##'                   srb = thai_srb, mig_props = thai_mig_props))
 ##' @export
-ccmpp_popReconstruct_r <- function(base_pop_counts, surv_props, fert_rates,
+ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
                     srb = matrix(1.05, ncol = proj_steps), mig_props,
                     proj_steps = ncol(fert_rates), age_int = 5,
                     label_dims = FALSE,
@@ -215,7 +215,7 @@ ccmpp_popReconstruct_r <- function(base_pop_counts, surv_props, fert_rates,
 ##' projecting age-stratified population counts forward in time. It calls compiled code to do the actual projection.
 ##'
 ##' @param n_age_grps Number of age groups
-##' @inheritParams ccmpp_popReconstruct_r
+##' @inheritParams ccmpp_r
 ##' @return If \code{isTRUE(return_list)}, a list with up to two components, \dQuote{female} and \dQuote{male}, each a matrix of age-specific population counts, years as columns, ages as rows. Otherwise a matrix of age-specific counts for females only.
 ##' @author Mark Wheldon
 ##' @family CCMPP backend functions
@@ -223,13 +223,13 @@ ccmpp_popReconstruct_r <- function(base_pop_counts, surv_props, fert_rates,
 ##' Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 ##' @examples
 ##' data("Thailand_demog")
-##' with(Thailand_demog, ccmpp_popReconstruct(thai_base_pop_counts,
+##' with(Thailand_demog, ccmpp(thai_base_pop_counts,
 ##'                   surv_props = thai_surv_props,
 ##'                   fert_rates=thai_fert_rates,
 ##'                   srb = thai_srb, mig_props = thai_mig_props))
 ##' @useDynLib ccmpp, .registration = TRUE, .fixes = "C_"
 ##' @export
-ccmpp_popReconstruct <- function(base_pop_counts, surv_props, fert_rates,
+ccmpp <- function(base_pop_counts, surv_props, fert_rates,
                     srb = matrix(1.05, ncol = proj_steps), mig_props,
                     proj_steps = ncol(fert_rates),
                     n_age_grps = length(base_pop_counts$female), age_int = 5,

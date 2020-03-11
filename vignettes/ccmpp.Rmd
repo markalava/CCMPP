@@ -1,0 +1,111 @@
+---
+title: "Introduction to ccmpp"
+author: "Mark Wheldon"
+date: |
+    | `r Sys.Date()`
+output:
+    function(...) rmarkdown::html_vignette(..., css=c(system.file("rmarkdown", "templates", "html_vignette", "resources", "vignette.css", package = "rmarkdown"), "vignette2.css")):
+      toc: true
+bibliography: bibliography.bib
+link-citations: true
+vignette: >
+  %\VignetteIndexEntry{ccmpp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+## set global chunk options
+options(formatR.arrow=TRUE,width=80)
+```
+
+<!-- 
+STYLE CONVENTIONS
+- Filenames: single quoted
+- Software: italics
+-->
+
+
+# Description 
+
+This package implements the cohort-component method of population projection (CCMPP) (@lewis_generation_1942, @leslie_further_1948, @leslie_use_1945) in both _R_ and _C_. It is based on the 'female-dominant' version given in @preston_demography_2001, Ch. 6, for the kind of input data commonly available in human populations. The CCMPP produces projections of a population by age and sex at discrete points in time, such as every year or every five years. The resolution of age must match the step width (e.g., five-year age groups yields projections at five-year intervals). 
+
+
+# Data Included
+
+This package includes example demographic data for Thailand for the period 1960--2000. These are based on input data used to produce the _World Population Prospects: the 2010 Revision_ (@united_nations_world_2011). All parameters are by five-year age group and five-year period. Sex-specific parameters are lists with components `male` and `female`. The name of the data set is `Thailand_demog` which is a list with the following components
+
+| Component              | Description                                                                                                  |
+|:-----------------------|:-------------------------------------------------------------------------------------------------------------|
+| `thai_base_pop_counts` | List of population counts in 1960.                                                                           |
+| `thai_fert_rates`      | A matrix (age x year) of age-specific fertility rates.                                                       |
+| `thai_surv_props`      | Survivorship proportions (i.e., the proportion surviving five years, or ${}_nS_5$, in demographic notation). |
+| `thai_mig_props`       | Average annual net number of migrants.                                                                       |
+| `thai_srb`             | Average sex ratio at birth.                                                                                  |
+
+
+```{r}
+data(Thailand_demog, package = "ccmpp")
+```
+```{r eval = FALSE}
+str(Thailand_demog)
+#> List of 5
+#>  $ thai_base_pop_counts:List of 2
+#>   ..$ female: num [1:17, 1] 2338000 1857000 1543000 1287000 1250000 ...
+#>   .. ..- attr(*, "dimnames")=List of 2
+#>   .. .. ..$ : chr [1:17] "0" "5" "10" "15" ...
+#>   .. .. ..$ : chr "1960"
+#>   ..$ male  : num [1:17, 1] 2418000 1909000 1588000 1342000 1254000 ...
+#>   .. ..- attr(*, "dimnames")=List of 2
+#>   .. .. ..$ : chr [1:17] "0" "5" "10" "15" ...
+#>   .. .. ..$ : chr "1960"
+#>  $ thai_fert_rates     : num [1:17, 1:8] 0 0 0 0.0518 0.2402 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>   .. ..$ : chr [1:17] "0" "5" "10" "15" ...
+#>   .. ..$ : chr [1:8] "1960" "1965" "1970" "1975" ...
+#>  $ thai_surv_props     :List of 2
+#>   ..$ female: num [1:18, 1:8] 0.914 0.961 0.99 0.992 0.988 ...
+#>   .. ..- attr(*, "dimnames")=List of 2
+#>   .. .. ..$ : chr [1:18] "0" "5" "10" "15" ...
+#>   .. .. ..$ : chr [1:8] "1960" "1965" "1970" "1975" ...
+#>
+#> [TRUNCATED]
+```
+
+
+# Main Functions
+
+## _R_ Level
+
+There are two main functions. `ccmpp()` and `ccmpp_r()`. They both take the same arguments and return the same results but the first one uses an implementation of the core arithmetic in _C_ whereas the latter is written entirely in _R_.
+
+
+## _C_ Level
+
+The _C_ level function is `C_ccmpp` and is defined in the header 'ccmppAPI.h'. This can be `#include`ed and used in your own _C_ code.
+
+
+# Example
+
+The population of Thailand is projected from 1960 to 2000 as follows.
+
+```{r thai-projection}
+library(ccmpp)
+data(Thailand_demog)
+
+with(Thailand_demog,
+     ccmpp(thai_base_pop_counts,
+           surv_props = thai_surv_props,
+           fert_rates=thai_fert_rates,
+           srb = thai_srb, mig_props = thai_mig_props))
+```
+
+
+
+
+# References {-}
