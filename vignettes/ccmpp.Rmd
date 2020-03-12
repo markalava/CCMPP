@@ -38,7 +38,7 @@ This package implements the cohort-component method of population projection (CC
 
 # Data Included
 
-This package includes example demographic data for Thailand for the period 1960--2000. These are based on input data used to produce the _World Population Prospects: the 2010 Revision_ (@united_nations_world_2011). All parameters are by five-year age group and five-year period. Sex-specific parameters are lists with components `male` and `female`. The name of the data set is `Thailand_demog` which is a list with the following components
+This package includes example demographic data for Thailand for the period 1960--2000. These are based on input data used to produce the _World Population Prospects: the 2010 Revision_ (@united_nations_world_2011). All parameters are by five-year age group and five-year period. Sex-specific parameters are lists with components `male` and `female`. The name of the data set is `Thailand_demog` which is a list with the following components:
 
 | Component              | Description                                                                                                  |
 |:-----------------------|:-------------------------------------------------------------------------------------------------------------|
@@ -87,10 +87,10 @@ There are two main functions. `ccmpp()` and `ccmpp_r()`. They both take the same
 
 ## _C_ Level
 
-The _C_ level function is `C_ccmpp` and is defined in the header 'ccmppAPI.h'. This can be `#include`ed and used in your own _C_ code.
+The _C_ level function is `C_ccmpp` and is defined in the header 'ccmppAPI.h'. This can be `#include`ed and used in your own _C_ code. A basic _R_ wrapper called `ccmpp_c` is provided.
 
 
-# Example
+# Examples
 
 The population of Thailand is projected from 1960 to 2000 as follows.
 
@@ -105,6 +105,31 @@ with(Thailand_demog,
            srb = thai_srb, mig_props = thai_mig_props))
 ```
 
+The basic wrapper takes slightly different arguments.
+
+```{r thai-projection-basic-c}
+data("Thailand_demog")
+raw <-
+  with(Thailand_demog, {
+  ccmpp_c(out_pop_fem = matrix(rep(thai_base_pop_counts$female, 9), ncol = 9),
+          out_pop_male = matrix(rep(thai_base_pop_counts$male, 9), ncol = 9),
+          srb = thai_srb,
+          fert = thai_fert_rates,
+          surv_fem = thai_surv_props$female[-1,],
+          surv_male = thai_surv_props$male[-1,],
+          surv_fem_0 = thai_surv_props$female[1,],
+          surv_male_0 = thai_surv_props$male[1,],
+          mig_fem = thai_mig_props$female,
+          mig_male = thai_mig_props$male,
+          bline_fem = thai_base_pop_counts$female,
+          bline_male = thai_base_pop_counts$male,
+          n_proj_steps = ncol(thai_fert_rates), #8
+          n_age_pop = nrow(thai_base_pop_counts$female), #17
+          step_wid = 5
+  )})
+(nicer <- list(female = matrix(raw[[1]], ncol = 9),
+              male = matrix(raw[[2]], ncol = 9)))
+```
 
 
 
