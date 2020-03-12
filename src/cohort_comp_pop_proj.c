@@ -1,6 +1,3 @@
-#include <R.h>
-#include <R_ext/Rdynload.h>
-
 /* FILE: cohort_comp_pop_proj.c
  *
  * AUTHOR: Mark Wheldon
@@ -19,7 +16,49 @@
  * */
 
 
-void ccmpp_(double *out_pop_fem, double *out_pop_male
+/*
+ * # SUB-FUNCTIONS
+ *
+ * */
+
+/*
+ * ## Index converter.
+ *
+ * */
+
+int loc(int nr, int r, int c) {
+  /* Gives location (0-based) of an element in the vector version of the element in
+   * a matrix with 'nr' rows, referenced by the (1-based) array indices 'r' and
+   * 'c'. */
+  return (c - 1) * nr + r - 1;
+}
+
+
+/*
+ * ## Projection Function
+ *
+ * */
+
+/* Projection for a single age-group in a projection step. Adds half net
+ * number of migrants, survives across projection interval, adds remaining
+ * migrants. */
+double projection(double out_pop_prev, double out_pop_prev_pl_1
+		  ,double surv_prev
+		  ,double mig_prop_prev, double mig_prop_prev_pl_1
+		  ) {
+  /* 'younger' and 'curr' refer to age groups. All quantities are for the
+   * youngerious time period. */
+  return out_pop_prev * (1 + mig_prop_prev) * surv_prev +
+    mig_prop_prev_pl_1 * out_pop_prev_pl_1;
+}
+
+
+/*
+ * # MAIN FUNCTION
+ *
+ * */
+
+void ccmpp(double *out_pop_fem, double *out_pop_male
                               ,double *srb, double *fert
                               ,double *surv_fem, double *surv_male
                               ,double *surv_fem_0, double *surv_male_0
@@ -64,43 +103,6 @@ void ccmpp_(double *out_pop_fem, double *out_pop_male
 
 
     /*
-     * # SUB-FUNCTIONS
-     *
-     * */
-
-    /*
-     * ## Index converter.
-     *
-     * */
-
-    int loc(int nr, int r, int c) {
-        /* Gives location (0-based) of an element in the vector version of the element in
-         * a matrix with 'nr' rows, referenced by the (1-based) array indices 'r' and
-         * 'c'. */
-        return (c - 1) * nr + r - 1;
-    }
-
-
-    /*
-     * ## Projection Function
-     *
-     * */
-
-    /* Projection for a single age-group in a projection step. Adds half net
-     * number of migrants, survives across projection interval, adds remaining
-     * migrants. */
-    double projection(double out_pop_prev, double out_pop_prev_pl_1
-                      ,double surv_prev
-                      ,double mig_prop_prev, double mig_prop_prev_pl_1
-        ) {
-        /* 'younger' and 'curr' refer to age groups. All quantities are for the
-         * youngerious time period. */
-        return out_pop_prev * (1 + mig_prop_prev) * surv_prev +
-            mig_prop_prev_pl_1 * out_pop_prev_pl_1;
-    }
-
-
-    /*
      * # SET-UP
      *
      * */
@@ -128,7 +130,7 @@ void ccmpp_(double *out_pop_fem, double *out_pop_male
         /* 'out_pop_SEX' is a vector converted from an R-side matrix containing
          * the population counts at baseline (first column) and projected counts
          * (subsequent columns). Projection proceeds in a sequence of
-         * '*n_proj_steps steps'. Projected counts at step y are derived by
+         * '*n_proj_steps' steps. Projected counts at step y are derived by
          * multiplying the counts derived in step y-1 by a function of fertility
          * rates, survival proportions and migration proportions.
          *
@@ -136,7 +138,7 @@ void ccmpp_(double *out_pop_fem, double *out_pop_male
          * matrices as 'column 1'.
          *
          * On the R-side, the population count matrix has the baseline count in
-         * column 0. Projected counts are to end up in columns 1, ...,
+         * column 1. Projected counts are to end up in columns 2, ...,
          * *n_proj_steps. Thus, projected counts in column 1 < y <= '*n_proj_steps'
          * are a function of the counts in column y-1 and the entries in column
          * y-1 of the fert, surv and mig matrices.
@@ -253,22 +255,26 @@ void ccmpp_(double *out_pop_fem, double *out_pop_male
 
 
 
-/* /\* ---------------------------------------------------------------------------- */
-/*  * REGISTRATION --- TO FINISH AND TEST */
-/*  *\/ */
+/* ----------------------------------------------------------------------------
+ * REGISTRATION
+ */
 
-/* static R_NativePrimitiveArgType ccmpp__t[] = { */
-/*     REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, */
-/*     REALSXP, REALSXP, REALSXP, REALSXP, REALSXP, INTSXP, INTSXP, INTSXP */
-/* }; */
+#include <stdlib.h> // for NULL
+#include <R_ext/Rdynload.h>
+#include <R_ext/Visibility.h>
 
-/* static const R_CMethodDef cMethods[] = { */
-/*    {"ccmpp_", (DL_FUNC) &ccmpp_, 15, ccmpp__t}, */
-/*    {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL} */
-/* }; */
+/* .C calls */
+extern void ccmpp(double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, double *, int *, int *, int *);
 
-/* void */
-/* R_init_ccmpp(DllInfo *info) */
-/* { */
-/*    R_registerRoutines(info, cMethods, NULL, NULL, NULL); */
-/* } */
+static const R_CMethodDef CEntries[] = {
+    {"ccmpp", (DL_FUNC) &ccmpp, 15},
+    {NULL, NULL, 0}
+};
+
+attribute_visible  // optional
+void R_init_ccmpp(DllInfo *dll)
+{
+    R_registerRoutines(dll, CEntries, NULL, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);    
+    R_forceSymbols(dll, TRUE);
+}
