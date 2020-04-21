@@ -24,12 +24,12 @@
 ##' Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 ##' @examples
 ##' data("Thailand_demog")
-##' with(Thailand_demog, ccmpp_R(thai_base_pop_counts,
+##' with(Thailand_demog, ccmpp_r(thai_base_pop_counts,
 ##'                   surv_props = thai_surv_props,
 ##'                   fert_rates=thai_fert_rates,
 ##'                   srb = thai_srb, mig_props = thai_mig_props))
 ##' @export
-ccmpp_R <- function(base_pop_counts, surv_props, fert_rates,
+ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
                     srb = matrix(1.05, ncol = proj_steps), mig_props,
                     proj_steps = ncol(fert_rates), age_int = 5,
                     label_dims = FALSE,
@@ -214,13 +214,12 @@ ccmpp_R <- function(base_pop_counts, surv_props, fert_rates,
 ##' population projection (e.g., \cite{Preston et. al, 2001, Ch. 6}). This is a deterministic method for
 ##' projecting age-stratified population counts forward in time. It calls compiled code to do the actual projection.
 ##'
-##' @seealso \code{\link{C_ccmpp}} which is a bare wrapper for the same underlying _C_ function.
+##' @seealso \code{\link{ccmpp_c}} which is a bare wrapper for the same underlying _C_ function, and \code{\link{ccmpp_r}} which is an implementation in pure \R.
 ##'
 ##' @param n_age_grps Number of age groups
-##' @inheritParams ccmpp_R
+##' @inheritParams ccmpp_r
 ##' @return If \code{isTRUE(return_list)}, a list with up to two components, \dQuote{female} and \dQuote{male}, each a matrix of age-specific population counts, years as columns, ages as rows. Otherwise a matrix of age-specific counts for females only.
 ##' @author Mark Wheldon
-##' @family CCMPP backend functions
 ##' @references
 ##' Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 ##' @examples
@@ -454,6 +453,7 @@ ccmpp <- function(base_pop_counts, surv_props, fert_rates,
 ##'     nothing (\code{void}) but has the side effect of similarly
 ##'     replacing element in the first two arguments.
 ##' @author Mark C Wheldon
+##' @family CCMPP backend functions
 ##' @useDynLib ccmpp, .registration = TRUE, .fixes = "C_"
 ##' @export
 ccmpp_c <- function(out_pop_fem, out_pop_male, srb, fert, surv_fem, surv_male,

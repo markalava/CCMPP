@@ -70,12 +70,8 @@ with(Thailand_demog, ccmpp(thai_base_pop_counts,
 Preston, S. H., Heuveline, P., and Guillot, M. (2001), \emph{Demography: Measuring and Modeling Population Processes}, Malden, Massachusetts: Blackwell.
 }
 \seealso{
-\code{\link{C_ccmpp}} which is a bare wrapper for the same underlying _C_ function.
-
-Other CCMPP backend functions: 
-\code{\link{ccmpp_R}()}
+\code{\link{ccmpp_c}} which is a bare wrapper for the same underlying _C_ function, and \code{\link{ccmpp_r}} which is an implementation in pure \R.
 }
 \author{
 Mark Wheldon
 }
-\concept{CCMPP backend functions}

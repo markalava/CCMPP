@@ -1,7 +1,7 @@
 test_that("R and C versions of CCMPP return the same values", {
     data(Thailand_demog)
     proj_r <- with(Thailand_demog,
-                   ccmpp_R(thai_base_pop_counts,
+                   ccmpp_r(thai_base_pop_counts,
                       surv_props = thai_surv_props,
                       fert_rates=thai_fert_rates,
                       srb = thai_srb, mig_props = thai_mig_props))

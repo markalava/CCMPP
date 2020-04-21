@@ -154,7 +154,11 @@ raw <-
 \code{\link{ccmpp}}, a more friendly wrapper for
     the same underlying _C_ function that takes arguments as \R
     lists and does some optional input checks.
+
+Other CCMPP backend functions: 
+\code{\link{ccmpp_r}()}
 }
 \author{
 Mark C Wheldon
 }
+\concept{CCMPP backend functions}
