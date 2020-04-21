@@ -144,7 +144,7 @@ ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
 
         ## -------** Net migrants
 
-        half_net_numb_mig_props <-
+        half_net_numb_mig_counts <-
             mapply(FUN = function(a, b) a[,i] * b[,i] * age_int
                    ,half_mig_props, base_pop_counts_lis, SIMPLIFY = FALSE
                    )
@@ -164,8 +164,14 @@ ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
         ## Project
         base_pop_counts_lis[["female"]][,i+1] <-
             lesM_female %*% (base_pop_counts_lis[["female"]][,i] +
-                             half_net_numb_mig_props[["female"]]
-                             ) + half_net_numb_mig_props[["female"]]
+                             half_net_numb_mig_counts[["female"]]
+            ) + half_net_numb_mig_counts[["female"]]
+
+        ## Births to migrants
+        births_to_migrants_female <-
+            k * age_int * fert_rates[-1,i] * half_net_numb_mig_counts$female[-1]
+        base_pop_counts_lis[["female"]][1,i+1] <-
+            base_pop_counts_lis[["female"]][1,i+1] + sum(births_to_migrants_female)
 
 
         ## -------** Males
@@ -175,15 +181,20 @@ ccmpp_r <- function(base_pop_counts, surv_props, fert_rates,
             diag(lesM_male[-1,]) <- surv_props[["male"]][2:(n_age_grps),i]
             lesM_male[n_age_grps,n_age_grps] <- surv_props[["male"]][n_surv_props,i]
             base_pop_counts_lis[["male"]][,i+1] <-
-                lesM_male %*% (base_pop_counts_lis[["male"]][,i] + half_net_numb_mig_props[["male"]]) +
-                    half_net_numb_mig_props[["male"]]
+                lesM_male %*% (base_pop_counts_lis[["male"]][,i] + half_net_numb_mig_counts[["male"]]) +
+                    half_net_numb_mig_counts[["male"]]
 
             ## Add male births. Migration of mothers in this interval already
             ## taken care of in previous step.
             male_k <- srb[,i] / surv_props[["female"]][1,i] * surv_props[["male"]][1,i]
             base_pop_counts_lis[["male"]][1,i+1] <- base_pop_counts_lis[["male"]][1,i+1] +
-                male_k * (base_pop_counts_lis[["female"]][1,i+1] - half_net_numb_mig_props[["female"]][1])
+                male_k * (base_pop_counts_lis[["female"]][1,i+1] - half_net_numb_mig_counts[["female"]][1])
         }
+
+
+        ## -------** End Period Migration
+
+        ## TO DO: Do it for M and F here so don't have to minus off fem mig in male births
 
     }
 
