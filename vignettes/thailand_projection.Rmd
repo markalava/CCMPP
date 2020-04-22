@@ -9,7 +9,7 @@ output:
 bibliography: bibliography.bib
 link-citations: true
 vignette: >
-  %\VignetteIndexEntry{ccmpp}
+  %\VignetteIndexEntry{Thailand projection}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -30,6 +30,8 @@ STYLE CONVENTIONS
 - Software: italics
 -->
 
+
+This vignette can be accessed by calling \verb|vignette("Thailand projection", package = "CCMPP")|.
 
 # Description 
 
