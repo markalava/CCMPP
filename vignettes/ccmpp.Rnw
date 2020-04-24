@@ -1,0 +1,275 @@
+\documentclass[11pt,letterpaper]{article}
+\title{Cohort Component Method of Population Projection\\\textbf{Technical Specifications of UNPD Implementation}}
+\author{}
+
+
+%\VignetteIndexEntry{CCMPP technical specifications}
+%\VignetteEngine{utils::Sweave}
+
+
+%% APPEARANCE
+%% ----------
+\usepackage[margin=1in]{geometry}
+\usepackage[margin=10pt,font=small,labelfont=bf,labelsep=period]{caption}
+%% -
+
+%% AMSMATH and other MATHS
+%% -----------------------
+\usepackage{amsmath}
+% \usepackage{amsthm}
+% \usepackage{amsfonts}
+\usepackage{mathtools}
+%% -
+
+%% TEXT FORMATTING AND DISPLAY
+%% ---------------------------
+% \usepackage{url}
+
+% % Get line breaking in verbatim
+% % (from: http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2009-04/msg00306.html)
+% \makeatletter
+% \def\@xobeysp{ }
+% \makeatother
+
+% % Get line breaking in tt
+% \newcommand*\justify{%
+%   \fontdimen2\font=0.4em% interword space
+%   \fontdimen3\font=0.2em% interword stretch
+%   \fontdimen4\font=0.1em% interword shrink
+%   \fontdimen7\font=0.1em% extra space
+%   \hyphenchar\font=`\-% allowing hyphenation
+% }%
+%% -
+
+%% ENVIRONMENTS
+%% ------------
+% NB: theoremstyle requires 'amsthm' package
+% \theoremstyle{plain}\newtheorem{proposition}{Proposition}
+% \theoremstyle{plain}\newtheorem{corollary}{Corollary}
+% \theoremstyle{definition}\newtheorem{definition}{Definition}
+% \theoremstyle{definition}\newtheorem{identity}{Identity}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+% Lists
+\usepackage{enumitem}
+\setlist[description]{leftmargin=\parindent,labelindent=\parindent}
+%% -
+
+%% APPENDIX
+%% --------
+\usepackage{appendix}
+%-
+
+%% BIBLIOGRAPHY
+%% ------------
+\usepackage[natbib,sorting=nyt, style=authoryear-comp, backend=biber,
+uniquename=false, uniquelist=false, mergedate=maximum,
+maxcitenames=2, maxbibnames=12, firstinits=true,
+useprefix,%<-- 'von' is part of surname %
+%,labeldate=false%
+isbn=false, doi=false, eprint=true, %url=false
+dashed=false]{biblatex}
+\addbibresource{bibliography.bib}
+
+%% HYPERREF
+%% --------
+% \usepackage[hyperref,table,fixpdftex,svgnames]{xcolor}
+% \usepackage[pdftex,bookmarks,colorlinks,allcolors=DarkBlue]{hyperref}
+%% -
+
+%% MACROS
+%% ------
+\renewcommand\vec\mathbf
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\var}[1]{\textit{#1}}
+\newcommand{\pkg}[1]{\textbf{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\ud}{\textrm{d}}
+\newcommand{\ltp}[3]{{_{#1}}{#2}_{#3}}
+\newcommand{\ltpt}[3]{{_{#1}}{#2}_{#3}[t,t+#1]}
+\newcommand{\srb}{\textrm{SRB}}
+%% -
+
+%% SWEAVE
+%% ------
+\usepackage[nogin,noae]{Sweave}
+\SweaveOpts{keep.source = TRUE}
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{xleftmargin=0em,fontsize=\small}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{xleftmargin=0em,fontsize=\small}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{xleftmargin=0em,fontsize=\small}
+\fvset{listparameters={\setlength{\topsep}{0pt}}}
+\renewenvironment{Schunk}{\vspace{\topsep}}{\vspace{\topsep}}
+%% -
+
+%% -----------------------------------------------------------------------------
+
+
+\begin{document}
+
+\maketitle
+
+% \tableofcontents\clearpage
+% \listoffigures\clearpage
+
+<<sweave-setup,echo=false,results=hide>>=
+options(width = 70, continue = " "#, useFancyQuotes="UTF-8"
+        ,SweaveHooks=list(fig=function()
+par(mar=c(5.1, 4.1, 1.1, 2.1)))
+)
+pdf.options(pointsize = 9)
+
+## library(reshape)
+
+## library(ggplot2)
+## theme_set(theme_grey(base_size = 9))    # pointsize for plot text
+
+## library(popReconstruct)
+@
+
+%This vignette can be accessed by calling
+
+<<vignette-call,eval=false,echo=false>>=
+vignette("CCMPP technical specifications", package = "CCMPP")
+@ 
+
+
+
+\section{Notation}
+\label{sec:notation}
+
+We use the following notation for life table parameters \citep[e.g.][]{preston_demography_2001}. 
+% \begin{table}[hbpt]
+%   \caption{Standard life table parameters and notation.}
+%   \label{tab:life-table-notation}
+%   \centering
+\begin{center}
+  \begin{tabular}{rp{0.7\textwidth}} %\toprule
+   % Symbol      & Meaning\\\midrule
+    $x$         & Age in years.\\
+    $t$         & Time or year.\\
+    $\omega$    & Beginning of the last, open ended age interval.\\
+    % $l_x$    & Population aged $x$.\\
+    % $\ltp{n}{d}{x}$    & Number dying from age $x$ to age $x+n$.\\
+    % $\ltp{n}{q}{x}$    & Probability of dying from age $x$ to age $x+n$.\\
+    % $\ltp{n}{p}{x}$    & Probability of surviving from age $x$ to age $x+n$.\\
+    $\ltp{n}{L}{x}$    & Person-years lived from age $x$ to age $x+n$.\\
+    $T_{x}$    & Person-years lived above age $x$. $T_x \coloneqq \sum_x^\infty \ltp{n}{L}{x}$\\
+    % $e_x$         & Expected years lived above age $x$.\\
+    % $\ltp{n}{m}{x}$    & Age-specific death rate from age $x$ to age $x+n$.\\
+    % $\ltp{n}{a}{x}$    & Average person-years lived between ages $x$ and age $x+n$.\\
+    %\bottomrule
+  \end{tabular}
+\end{center}
+% \end{table}
+
+For projection we also use
+\begin{center}
+  \begin{tabular}{rp{0.7\textwidth}} %\toprule
+    $\ltp{n}{N}{x}$     & Population count from age $x$ to age $x+n$.\\
+    $\ltp{n}{B}{x}$     & Number of births to mothers aged $x$ to $x+n$.\\
+    $\ltp{n}{F}{x}$     & Age-specific fertility rate from age $x$ to age $x+n$.\\
+                        & $\ltp{n}{F}{x} \coloneqq \ltp{n}{B}{x} / \ltp{n}{L}{x}$. \\
+    $\ltp{n}{S}{x}$     & Proportion surviving from age group $[x-n,x)$ to $[x,x+n)$.\\
+                        & $\ltp{n}{S}{x} \coloneqq \ltp{n}{L}{x} / \ltp{n}{L}{x-n}$. \\
+    $\ltp{n}{I}{x}$     & Age-specific net number of migrants aged $x$ to $x+n$.\\
+  \end{tabular}
+\end{center}
+
+It is necessary to make some parameters specific to sex and time. We indicate female and male with superscript $F$ and $M$, respectively, e.g., $\ltp{n}{N^F}{x}$ is the female population in age group $[x, x+n)$. To indicate intervals of time over which a parameter applies we append ``$[t,t+n]$'', e.g., $\ltp{n}{F}{x}[t,t+n]$ are the fertility rates of women aged $[x,x+n)$ that prevail in the interval $[t,t+n)$. Population counts are specific to points in time so we will write, e.g., $\ltp{n}{N}{x}(t)$ is the population count in age group $[x,x+n)$ in year $t$.
+
+
+\section{CCMPP Specifications}
+\label{sec:ccmpp-specification}
+
+We consider two-sex populations open to migration and project from year $t=t_0$ to $T$. The cohort component method of population projection (CCMPP) is a discrete time approximation to a continuous time process, hence the interval of projection is partitioned into intervals of width $n$ years $[t_0, n)$, $[n, 2n)$, \ldots, $[T-n, T)$. Projection proceeds by stepping through these intervals, accounting for the changes in population size and composition at each step. Starting from the population at time $t_0$, births are added according to the age-specific fertility rates, deaths are subtracted according to the age-specific survival proportions, and migration could add or subtract depending on whether it is net positive or negative. 
+
+
+\subsection{Inputs} 
+
+\begin{center}
+  \newcommand\oldtabularxcolumn\tabularxcolumn
+  \renewcommand\tabularxcolumn[1]{>{\raggedright}m{#1}}
+  {\small%
+  \begin{tabularx}{\textwidth}{|rX|l|} \toprule
+    1 &\textbf{Age-specific population counts at the start of year $t_0$} by age and sex from age $x$ to $\omega$ by $n$. & %
+    $\begin{matrix}
+      \ltp{n}{N^F}{0}(t_0), \ldots, \ltp{\infty}{N^F}{\omega}(t_0)\\
+      \ltp{n}{N^M}{0}(t_0), \ldots, \ltp{\infty}{N^M}{\omega}(t_0)
+    \end{matrix}$ \\\midrule
+    2 & \textbf{Age-specific fertility rates over each projection step.}  &%
+    $\begin{bmatrix}
+         \ltp{n}{F}{n}[t_0,t_0+n] & \ltp{n}{F}{n}[t_0+n,t_0+2n] & \ldots & \ltp{n}{F}{n}[T-n,T] \\
+         \vdots                   & \vdots                     &  \ddots & \vdots \\
+         \ltp{n}{F}{\omega-n}[t_0,t_0+n] & \ltp{n}{F}{\omega-n}[t_0+n,t_0+2n] & \ldots & \ltp{n}{F}{\omega-n}[T-n,T]
+       \end{bmatrix}$ \\ \midrule
+    3 & \textbf{Sex ratios at birth over each projection step.} &%
+       $\begin{matrix}
+         \srb[t_0,t_0+n], \srb[t_0+n,t_0+2n] ,\ldots, \srb[T-n,T]
+       \end{matrix}$ \\\midrule
+    4 & \textbf{Age-specific survival proportions over each projection step.} &%
+    $\begin{bmatrix}
+         \ltp{0}{S}{n}[t_0,t_0+n] & \ltp{0}{S}{n}[t_0+n,t_0+2n] & \ldots & \ltp{0}{S}{n}[T-n,T] \\
+         \ltp{n}{S}{n}[t_0,t_0+n] & \ltp{n}{S}{n}[t_0+n,t_0+2n] & \ldots & \ltp{n}{S}{n}[T-n,T] \\
+         \vdots                   & \vdots                     &  \ddots & \vdots \\
+         \ltp{n}{S}{\omega-n}[t_0,t_0+n] & \ltp{n}{S}{\omega-n}[t_0+n,t_0+2n] & \ldots & \ltp{n}{S}{\omega-n}[T-n,T] \\ 
+         \ltp{n}{S}{\omega}[t_0,t_0+n] & \ltp{n}{S}{\omega}[t_0+n,t_0+2n] & \ldots & \ltp{n}{S}{\omega}[T-n,T]
+       \end{bmatrix}$ \\\midrule
+    5 & \textbf{Age-specific net numbers of migrants over each projection step.}  &%
+    $\begin{bmatrix}
+         \ltp{0}{I}{n}[t_0,t_0+n] & \ltp{0}{I}{n}[t_0+n,t_0+2n] & \ldots & \ltp{0}{I}{n}[T-n,T] \\
+         \ltp{n}{I}{n}[t_0,t_0+n] & \ltp{n}{I}{n}[t_0+n,t_0+2n] & \ldots & \ltp{n}{I}{n}[T-n,T] \\
+         \vdots                   & \vdots                     &  \ddots & \vdots \\
+         \ltp{n}{I}{\omega-n}[t_0,t_0+n] & \ltp{n}{I}{\omega-n}[t_0+n,t_0+2n] & \ldots & \ltp{n}{I}{\omega-n}[T-n,T] \\ 
+         \ltp{n}{I}{\omega}[t_0,t_0+n] & \ltp{n}{I}{\omega}[t_0+n,t_0+2n] & \ldots & \ltp{n}{I}{\omega}[T-n,T]
+       \end{bmatrix}$ \\
+\bottomrule
+\end{tabularx}}
+\renewcommand\tabularxcolumn\oldtabularxcolumn
+\end{center}
+
+\paragraph{Notes}
+\begin{description}
+\item[Fertility Rates] Fertility rates in the first and last age groups (i.e., $\ltp{n}{F}{0}$ and $\ltp{n}{F}{\omega}$) are assumed to be zero for all projection steps:
+  \begin{equation}
+    \label{eq:nF0-and-nFomega}
+    \ltp{n}{F}{0}[t,t+n] \coloneqq \ltp{n}{F}{\omega}[t,t+n] \coloneqq 0,\qquad t=t_0, \ldots, T-n
+  \end{equation}
+  \item[Survival Proportions] The survival proportion for the first age group, $\ltp{n}{S}{0}[t,t+n]$, is the proportion of births during the projection step $[t,t+n]$ that survive to the end of the step, ie.., year $t+n$. This is commonly estimated from the life table as
+    \begin{equation}
+      \label{eq:defn-nS0}
+      \ltp{n}{S}{0}[t,t+n] \coloneqq \frac{\ltp{n}{L}{0}[t,t+n]}{n\cdot l_0(t)},\qquad t=t_0, \ldots, T-n
+    \end{equation}
+
+\end{description}
+
+
+\subsection{Algorithmic Formulation}
+\label{sec:algor-form}
+
+This formulation is given in \citet[Box~6.2, p.128]{preston_demography_2001}.
+
+\fbox{** TO COMPLETE **}
+
+
+\subsection{Matrix Formulation}
+\label{sec:matrix-formulation}
+
+\fbox{** TO COMPLETE **}
+
+
+%% .............................................................................
+
+
+% \appendix
+% \appendixpage
+
+
+%% .............................................................................
+
+
+\printbibliography
+
+\end{document}

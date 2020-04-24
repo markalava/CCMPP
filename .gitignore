@@ -22,6 +22,15 @@
 # RStudio files
 .Rproj.user/
 
+# vignette intermediate files
+vignettes/*.aux
+vignettes/*.bbl
+vignettes/*.bcf
+vignettes/*.blg
+vignettes/*.log
+vignettes/*.run.xml
+vignettes/*.tex
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
