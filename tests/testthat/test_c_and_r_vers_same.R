@@ -4,7 +4,7 @@ test_that("R and C versions of CCMPP return the same values", {
     dims <- dim(Thailand_demog$thai_mig_props$female)
     Thailand_demog$thai_mig_props$female <-
         Thailand_demog$thai_mig_props$male <-
-            matrix(c(0.01, 0.02, 0.03, 0.04, 0.05), nrow = dims[1], ncol = dims[2])
+            matrix(c(0.01, 0.02, 0.03, 0.04), nrow = dims[1], ncol = dims[2])
     proj_r <- with(Thailand_demog,
                    ccmpp_r(thai_base_pop_counts,
                       surv_props = thai_surv_props,

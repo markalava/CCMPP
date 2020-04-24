@@ -186,12 +186,14 @@ void ccmpp(double *out_pop_fem, double *out_pop_male
          * survival in the current age group. */
         for(i_prev = i_start_prev1; i_prev < i_start; i_prev++) {
             if(i_prev == i_start - 1) fert_next = 0;
-            else fert_next = fert_whole_int[i_prev + 1];
+            else fert_next = fert_whole_int[i_prev + 1];	    
             fert_prime = (fert_whole_int[i_prev] + fert_next * surv_fem[i_prev]) / 2;
             births = births +
                 (fert_prime *
                  out_pop_fem[i_prev] * (1 + mig_fem_prop_whole_int_halved[i_prev])
-                );
+                ) + 
+	      fert_next * 0.5 *
+	        out_pop_fem[i_prev + 1] * mig_fem_prop_whole_int_halved[i_prev + 1];
         }
 
         /* Net number of migrants in first age group are the half added at the
